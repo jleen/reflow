@@ -1,6 +1,4 @@
 import React, { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
 const useAnimationFrame = (callback:((_:number)=>void)) => {
@@ -84,8 +82,8 @@ type Message = number
 function update(model: State, delta: Message): State {
   let frameNum = model.frameNum + delta / slowness
   let pipes = updatePipes(frameNum, model.pipes)
-  // TODO: Deal with um cmd
-  return {...model, pipes, frameNum}
+  let um = updateUm(frameNum, pipes, model.um);
+  return {...model, pipes, frameNum, um}
 }
 
 // Pipe grid
@@ -141,8 +139,46 @@ function boxY(y: number, frame: number) {
 }
 
 // Mon
-// TODO
 
+function updateUm(frame: number, pipes: Array<PipeRow>, um: Um): Um {
+  if (frame <= um.endFrameNum) {
+    return um;
+  } else {
+    let target = Math.floor(60 * Math.random());
+    let [dest, spin] = selectGoal(pipes, um.to, target);
+    return {from: um.to, to: dest, endFrameNum: Math.ceil(frame), spin}
+  }
+}
+
+function selectGoal(rows: Array<PipeRow>, start: number, target: number): [number, boolean] {
+  if (rows.length < 3) {
+    return [start, true];
+  } else {
+    let row = rows[3];
+    let blocked = findConnected(start, row.pipes);
+    if (blocked.length == 0) {
+      return [start, true];
+    } else {
+      let unblocked = blocked.filter(i => row.pipes[i].s);
+      let [candidates, spin] = unblocked.length == 0 ? [blocked, true] : [unblocked, false];
+      return [target % candidates.length, spin]
+    }
+  }
+}
+
+function findConnected(start: number, pipes: Array<Pipe>) {
+  return [0,1,2,3,4].filter(i => connected(pipes, start, i));
+}
+
+function connected(pipes: Array<Pipe>, start: number, end: number) {
+  if (start == end) {
+    return true;
+  } else if (start < end) {
+    return pipes.slice(start, end).every(p => p.e);
+  } else {
+    return pipes.slice(end+1, start+1).every(p => p.w);
+  }
+}
 
 //// VIEW
 

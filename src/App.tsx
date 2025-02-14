@@ -3,21 +3,6 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
-type State = {
-  count: number
-}
-
-type Tick = {
-  msg: "tick"
-  delta: number
-}
-
-type Click = {
-  msg: "click"
-}
-
-type Message = Tick | Click
-
 const useAnimationFrame = (callback:((_:number)=>void)) => {
   // Use useRef for mutable variables that we want to persist
   // without triggering a re-render on their change
@@ -39,9 +24,35 @@ const useAnimationFrame = (callback:((_:number)=>void)) => {
   }, []); // Make sure the effect runs only once
 }
 
+export default function App() {
+  const [state, setState] = useState(init)
+  let dispatch = (msg: Message) => {setState((s) => update(s, msg))}
+  useAnimationFrame(delta => dispatch({msg: "tick", delta: delta}))
+  return view(state, dispatch)
+}
+
+//// MODEL
+
+type State = {
+  count: number
+}
+
+type Tick = {
+  msg: "tick"
+  delta: number
+}
+
+type Click = {
+  msg: "click"
+}
+
+type Message = Tick | Click
+
 function init(): State {
   return { count: 0 }
 }
+
+//// EVOLUTION
 
 function update(state: State, msg: Message): State {
   switch (msg.msg) {
@@ -51,6 +62,8 @@ function update(state: State, msg: Message): State {
       return { ...state, count: state.count + 100 }
   }
 }
+
+//// VIEW
 
 function view(state: State, dispatch:((msg: Message)=>void)) {
   return (
@@ -79,11 +92,3 @@ function view(state: State, dispatch:((msg: Message)=>void)) {
   )
 }
 
-function App() {
-  const [state, setState] = useState(init)
-  let dispatch = (msg: Message) => {setState((s) => update(s, msg))}
-  useAnimationFrame(delta => dispatch({msg: "tick", delta: delta}))
-  return view(state, dispatch)
-}
-
-export default App

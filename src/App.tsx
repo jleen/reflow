@@ -3,6 +3,10 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
+interface State {
+  count: number;
+}
+
 const useAnimationFrame = (callback:((_:number)=>void)) => {
   // Use useRef for mutable variables that we want to persist
   // without triggering a re-render on their change
@@ -24,10 +28,15 @@ const useAnimationFrame = (callback:((_:number)=>void)) => {
   }, []); // Make sure the effect runs only once
 }
 
-function App() {
-  const [count, setCount] = useState(0)
+function init(): State {
+  return { count: 0 }
+}
 
-  useAnimationFrame(delta => {setCount(count => count + delta * 0.01)});
+function update(state: State, delta: number): State {
+  return { ...state, count: state.count + delta * 0.01 }
+}
+
+function view(state: State, setState: React.Dispatch<React.SetStateAction<State>>) {
   return (
     <>
       <div>
@@ -40,8 +49,8 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {Math.floor(count)}
+        <button onClick={() => setState((s)=>({...s, count: s.count + 1}))}>
+          count is {Math.floor(state.count)}
         </button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
@@ -52,6 +61,12 @@ function App() {
       </p>
     </>
   )
+}
+
+function App() {
+  const [state, setState] = useState(init)
+  useAnimationFrame(delta => {setState((s) => update(s, delta))});
+  return view(state, setState);
 }
 
 export default App

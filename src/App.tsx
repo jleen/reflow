@@ -36,7 +36,7 @@ function update(state: State, delta: number): State {
   return { ...state, count: state.count + delta * 0.01 }
 }
 
-function view(state: State, setState: React.Dispatch<React.SetStateAction<State>>) {
+function view(state: State, send:((s: State, d: number)=>void)) {
   return (
     <>
       <div>
@@ -49,7 +49,7 @@ function view(state: State, setState: React.Dispatch<React.SetStateAction<State>
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setState((s)=>({...s, count: s.count + 1}))}>
+        <button onClick={() => send(state, 100)}>
           count is {Math.floor(state.count)}
         </button>
         <p>
@@ -66,7 +66,7 @@ function view(state: State, setState: React.Dispatch<React.SetStateAction<State>
 function App() {
   const [state, setState] = useState(init)
   useAnimationFrame(delta => {setState((s) => update(s, delta))});
-  return view(state, setState);
+  return view(state, (s, delta) => setState(update(s, delta)));
 }
 
 export default App

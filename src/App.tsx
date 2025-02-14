@@ -143,12 +143,13 @@ function boxY(y: number, frame: number) {
 // Mon
 // TODO
 
+
 //// VIEW
 
 function view(model:State, _dispatch:((msg: Message)=>void)) {
   return (
     <div>
-      <svg viewBox ="0 0 480 400" width="480" height="400">
+      <svg viewBox="0 0 480 400" width="480" height="400">
         {/* TODO umView */}
         { pipeGrid(model.frameNum, model.pipes) }
       </svg>
@@ -156,9 +157,62 @@ function view(model:State, _dispatch:((msg: Message)=>void)) {
   )
 }
 
-
-function pipeGrid(_frameNum: number, _pipes: Array<PipeRow>) {
+function pipeGrid(frameNum: number, rows: Array<PipeRow>) {
   return (
-    <circle cx="50" cy="50" r="10" />
+    <svg x="0" y="0" width="480" height="400" viewBox="0 0 6 3">
+      { rows.map(row =>
+                 row.pipes.map((pipe, i) =>
+                               pipeCell(i + 0.5, boxY(row.y, frameNum), pipe))) }
+    </svg>
   )
+}
+
+const ne = "M 6 0 L 6 3 A 1 1 0 0 0 7 4 L 10 4"
+const es = "M 6 10 L 6 7 A 1 1 0 0 1 7 6 L 10 6"
+const sw = "M 0 6 L 3 6 A 1 1 0 0 1 4 7 L 4 10"
+const wn = "M 0 4 L 3 4 A 1 1 0 0 0 4 3 L 4 0"
+const ns = "M 6 0 L 6 10"
+const sn = "M 4 0 L 4 10"
+const we = "M 0 4 L 10 4"
+const ew = "M 0 6 L 10 6"
+const neo = "M 4 0 L 4 5 A 1 1 0 0 0 5 6 L 10 6"
+const eso = "M 4 10 L 4 5 A 1 1 0 0 1 5 4 L 10 4"
+const swo = "M 0 4 L 5 4 A 1 1 0 0 1 6 5 L 6 10"
+const wno = "M 0 6 L 5 6 A 1 1 0 0 0 6 5 L 6 0"
+const nx = "M 4 0 L 4 3 L 6 3 L 6 0"
+const ex = "M 10 4 L 7 4 L 7 6 L 10 6"
+const sx = "M 6 10 L 6 7 L 4 7 L 4 10"
+const wx = "M 0 6 L 3 6 L 3 4 L 0 4"
+
+function pipeCell(x: number, y: number, {n, s, e, w}: Pipe) {
+  return (
+    <svg x={x} y={y} width="1" height="1" viewBox="0 0 10 10">
+      {pathIf(ne, n && e)}
+      {pathIf(es, e && s)}
+      {pathIf(sw, s && w)}
+      {pathIf(wn, w && n)}
+      {pathIf(ns, n && s && !e)}
+      {pathIf(sn, s && n && !w)}
+      {pathIf(we, w && e && !n)}
+      {pathIf(ew, e && w && !s)}
+      {pathIf(neo, n && e && !s && !w)}
+      {pathIf(eso, e && s && !w && !n)}
+      {pathIf(swo, s && w && !n && !e)}
+      {pathIf(wno, w && n && !e && !s)}
+      {pathIf(nx, n && !e && !s && !w)}
+      {pathIf(ex, e && !s && !w && !n)}
+      {pathIf(sx, s && !w && !n && !e)}
+      {pathIf(wx, w && !n && !e && !s)}
+    </svg>
+  )
+}
+
+function pathIf(path: string, cond: boolean) {
+  if (cond) {
+    return (
+      <path d={path} stroke="blue" fill="none" strokeWidth="0.2" />
+    )
+  } else {
+    return <></>
+  }
 }

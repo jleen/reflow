@@ -147,28 +147,18 @@ function boxY(y: number, frame: number) {
 
 function view(model:State, _dispatch:((msg: Message)=>void)) {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button>
-          count is {Math.floor(model.frameNum)}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div>
+      <svg viewBox ="0 0 480 400" width="480" height="400">
+        {/* TODO umView */}
+        { pipeGrid(model.frameNum, model.pipes) }
+      </svg>
+    </div>
   )
 }
 
+
+function pipeGrid(_frameNum: number, _pipes: Array<PipeRow>) {
+  return (
+    <circle cx="50" cy="50" r="10" />
+  )
+}

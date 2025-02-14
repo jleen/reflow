@@ -27,45 +27,125 @@ const useAnimationFrame = (callback:((_:number)=>void)) => {
 export default function App() {
   const [state, setState] = useState(init)
   let dispatch = (msg: Message) => {setState((s) => update(s, msg))}
-  useAnimationFrame(delta => dispatch({msg: "tick", delta: delta}))
+  useAnimationFrame(delta => dispatch(delta))
   return view(state, dispatch)
 }
+
+//// CONFIG
+
+//const umImg = 'um.png'
+const slowness = 2500
+//const horizTimeslice = 0.2
 
 //// MODEL
 
 type State = {
-  count: number
+  pipes: Array<PipeRow>
+  frameNum: number
+  um: Um
 }
 
-type Tick = {
-  msg: "tick"
-  delta: number
+type Pipe = {
+  n: boolean
+  e: boolean
+  s: boolean
+  w: boolean
 }
 
-type Click = {
-  msg: "click"
+type PipeRow = {
+  y: number
+  pipes: Array<Pipe>
 }
 
-type Message = Tick | Click
+type Um = {
+  from: number
+  to: number
+  endFrameNum: number
+  spin: boolean
+}
 
 function init(): State {
-  return { count: 0 }
-}
-
-//// EVOLUTION
-
-function update(state: State, msg: Message): State {
-  switch (msg.msg) {
-    case "tick":
-      return { ...state, count: state.count + msg.delta * 0.01 }
-    case "click":
-      return { ...state, count: state.count + 100 }
+  return {
+    frameNum: 0,
+    pipes: [],
+    // TODO: HACK HACK HACK from GotPipes handler
+    um: { from: 2, to: 2, endFrameNum: 0, spin: false }
+    // TODO: generatePipes(-1)
   }
 }
 
+//// MESSAGES
+
+type Message = number
+
+
+//// EVOLUTION
+
+function update(model: State, delta: Message): State {
+  let frameNum = model.frameNum + delta / slowness
+  let pipes = updatePipes(frameNum, model.pipes)
+  // TODO: Deal with um cmd
+  return {...model, pipes, frameNum}
+}
+
+// Pipe grid
+
+function updatePipes(frameNum: number, pipes: Array<PipeRow>): Array<PipeRow> {
+  let visPipes = pipes.filter(p => boxY(p.y, frameNum) > -2);
+  if (visPipes.length == 0) {
+    return visPipes.concat([generatePipes(Math.floor(frameNum), null)]);
+  } else {
+    let lastPipe = visPipes[visPipes.length - 1];
+    if (boxY(lastPipe.y, frameNum) > 6) {
+      return visPipes;
+    } else {
+      return visPipes.concat([generatePipes(lastPipe.y + 1, lastPipe)]);
+    }
+  }
+}
+
+function toss(): boolean {
+  return !!Math.floor(2 * Math.random());
+}
+
+function newPipe(): Pipe {
+  return { n: toss(), s: toss(), e: toss(), w: toss() }
+}
+
+function generatePipes(y: number, prevRow: PipeRow | null): PipeRow {
+  let newRow = {
+    y: y,
+    pipes: [ newPipe(), newPipe(), newPipe(), newPipe(), newPipe() ]
+  }
+  reconcileV(newRow, prevRow);
+  reconcileH(newRow);
+  return newRow;
+}
+
+function reconcileV(newRow: PipeRow, prevRow: PipeRow | null) {
+  if (prevRow != null) {
+    for (let i = 0; i < 5; ++i) {
+      newRow.pipes[i].n = prevRow.pipes[i].s;
+    }
+  }
+}
+
+function reconcileH(newRow: PipeRow) {
+  for (let i = 0; i < 4; ++i) {
+    newRow.pipes[i].e = newRow.pipes[i+1].w;
+  }
+}
+
+function boxY(y: number, frame: number) {
+  return y - frame;
+}
+
+// Mon
+// TODO
+
 //// VIEW
 
-function view(state: State, dispatch:((msg: Message)=>void)) {
+function view(model:State, _dispatch:((msg: Message)=>void)) {
   return (
     <>
       <div>
@@ -78,8 +158,8 @@ function view(state: State, dispatch:((msg: Message)=>void)) {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => dispatch({msg: "click"})}>
-          count is {Math.floor(state.count)}
+        <button>
+          count is {Math.floor(model.frameNum)}
         </button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR

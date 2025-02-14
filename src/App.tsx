@@ -3,9 +3,20 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
-interface State {
-  count: number;
+type State = {
+  count: number
 }
+
+type Tick = {
+  msg: "tick"
+  delta: number
+}
+
+type Click = {
+  msg: "click"
+}
+
+type Message = Tick | Click
 
 const useAnimationFrame = (callback:((_:number)=>void)) => {
   // Use useRef for mutable variables that we want to persist
@@ -32,11 +43,16 @@ function init(): State {
   return { count: 0 }
 }
 
-function update(state: State, delta: number): State {
-  return { ...state, count: state.count + delta * 0.01 }
+function update(state: State, msg: Message): State {
+  switch (msg.msg) {
+    case "tick":
+      return { ...state, count: state.count + msg.delta * 0.01 }
+    case "click":
+      return { ...state, count: state.count + 100 }
+  }
 }
 
-function view(state: State, send:((d: number)=>void)) {
+function view(state: State, dispatch:((msg: Message)=>void)) {
   return (
     <>
       <div>
@@ -49,7 +65,7 @@ function view(state: State, send:((d: number)=>void)) {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => send(10000)}>
+        <button onClick={() => dispatch({msg: "click"})}>
           count is {Math.floor(state.count)}
         </button>
         <p>
@@ -65,8 +81,9 @@ function view(state: State, send:((d: number)=>void)) {
 
 function App() {
   const [state, setState] = useState(init)
-  useAnimationFrame(delta => {setState((s) => update(s, delta))});
-  return view(state, (delta) => setState((s) => update(s, delta)))
+  let dispatch = (msg: Message) => {setState((s) => update(s, msg))}
+  useAnimationFrame(delta => dispatch({msg: "tick", delta: delta}))
+  return view(state, dispatch)
 }
 
 export default App

@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import './App.css'
 
 const useAnimationFrame = (callback:((_:number)=>void)) => {
   // Use useRef for mutable variables that we want to persist
@@ -154,7 +153,7 @@ function selectGoal(rows: Array<PipeRow>, start: number, target: number): [numbe
   if (rows.length < 3) {
     return [start, true];
   } else {
-    let row = rows[3];
+    let row = rows[2];
     let blocked = findConnected(start, row.pipes);
     if (blocked.length == 0) {
       return [start, true];
@@ -179,6 +178,7 @@ function connected(pipes: Array<Pipe>, start: number, end: number) {
     return pipes.slice(end+1, start+1).every(p => p.w);
   }
 }
+
 
 //// VIEW
 

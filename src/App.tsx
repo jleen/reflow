@@ -31,9 +31,9 @@ export default function App() {
 
 //// CONFIG
 
-//const umImg = 'um.png'
+const umImg = 'um.png'
 const slowness = 2500
-//const horizTimeslice = 0.2
+const horizTimeslice = 0.2
 
 //// MODEL
 
@@ -186,8 +186,8 @@ function view(model:State, _dispatch:((msg: Message)=>void)) {
   return (
     <div>
       <svg viewBox="0 0 480 400" width="480" height="400">
-        {/* TODO umView */}
         { pipeGrid(model.frameNum, model.pipes) }
+        { umView(model.frameNum, model.um) }
       </svg>
     </div>
   )
@@ -251,4 +251,45 @@ function pathIf(path: string, cond: boolean) {
   } else {
     return <></>
   }
+}
+
+// Mon
+
+function umView(frame: number, um: Um) {
+  let x = 40 + 80 * xUm(frame, um);
+  let y = 70 + 80 * yUm(frame, um);
+  let r = um.spin ? 360 * Math.max(0, (((1 + horizTimeslice) * umParam(frame, um)) - horizTimeslice)) : 0;
+  return (
+    <foreignObject x={x} y={y} width="100" height="100" transform={rotation(r, x)}>
+      <img src={umImg} width="80" height="80" />
+    </foreignObject>
+  )
+}
+
+function xUm(frame: number, um: Um) {
+  return interp(um.from, um.to, umParam(frame, um), horizTimeslice);
+}
+
+function yUm(frame: number, um: Um) {
+  let t = umParam(frame, um);
+  if (t < horizTimeslice) {
+    return 1-t;
+  } else {
+    return (1 - 2 * horizTimeslice + horizTimeslice * t) / (1 - horizTimeslice);
+  }
+}
+
+function umParam(frame: number, um: Um) {
+  return 1 + frame - um.endFrameNum;
+}
+
+function interp(a: number, b: number, t: number, s: number) {
+  let tt = Math.min(1, t/s);
+  return b & tt + a * (1-tt);
+}
+
+function rotation(rot: number, pos: number) {
+  let x = pos + 45;
+  let y = 175;
+  return `rotate(${rot}, ${x}, ${y})`;
 }

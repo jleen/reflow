@@ -296,7 +296,7 @@ function umParam(frame: number, um: Um) {
 
 function interp(a: number, b: number, t: number, s: number) {
   let tt = Math.min(1, t/s);
-  return b & tt + a * (1-tt);
+  return b * tt + a * (1-tt);
 }
 
 function rotation(rot: number, pos: number) {

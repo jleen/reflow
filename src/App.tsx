@@ -1,10 +1,9 @@
-import React, { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
 
 const useAnimationFrame = (callback:((_:number)=>void)) => {
-  // Use useRef for mutable variables that we want to persist
-  // without triggering a re-render on their change
-  const requestRef = React.useRef<number>(0);
-  const previousTimeRef = React.useRef<number>(0);
+  const requestRef = useRef<number>(0);
+  const previousTimeRef = useRef<number>(0);
   
   const animate = (time:number) => {
     if (previousTimeRef.current != undefined) {
@@ -15,74 +14,75 @@ const useAnimationFrame = (callback:((_:number)=>void)) => {
     requestRef.current = requestAnimationFrame(animate);
   }
   
-  React.useEffect(() => {
+  useEffect(() => {
     requestRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(requestRef.current);
-  }, []); // Make sure the effect runs only once
+  }, []);  // Empty dependency list means we’ll only run once.
 }
 
 export default function App() {
-  const [state, setState] = useState(init)
-  let dispatch = (msg: Message) => {setState((s) => update(s, msg))}
-  useAnimationFrame(delta => dispatch(delta))
-  return view(state, dispatch)
+  const [state, setState] = useState(init);
+  let dispatch = (msg: Message) => {setState((s) => update(s, msg))};
+  useAnimationFrame(delta => dispatch(delta));
+  return view(state, dispatch);
 }
+
 
 //// CONFIG
 
-const umImg = 'um.png'
-const slowness = 2500
-const horizTimeslice = 0.2
+const umImg = 'um.png';
+const slowness = 2500;
+const horizTimeslice = 0.2;
+
 
 //// MODEL
 
 type State = {
-  pipes: Array<PipeRow>
-  frameNum: number
-  um: Um
+  pipes: Array<PipeRow>;
+  frameNum: number;
+  um: Um;
 }
 
 type Pipe = {
-  n: boolean
-  e: boolean
-  s: boolean
-  w: boolean
+  n: boolean;
+  e: boolean;
+  s: boolean;
+  w: boolean;
 }
 
 type PipeRow = {
-  y: number
-  pipes: Array<Pipe>
+  y: number;
+  pipes: Array<Pipe>;
 }
 
 type Um = {
-  from: number
-  to: number
-  endFrameNum: number
-  spin: boolean
+  from: number;
+  to: number;
+  endFrameNum: number;
+  spin: boolean;
 }
 
 function init(): State {
   return {
     frameNum: 0,
     pipes: [],
-    // TODO: HACK HACK HACK from GotPipes handler
     um: { from: 2, to: 2, endFrameNum: 0, spin: false }
-    // TODO: generatePipes(-1)
-  }
+  };
 }
+
 
 //// MESSAGES
 
-type Message = number
+type Message = number;
 
 
 //// EVOLUTION
 
 function update(model: State, delta: Message): State {
-  let frameNum = model.frameNum + delta / slowness
-  let pipes = updatePipes(frameNum, model.pipes)
+  let frameNum = model.frameNum + delta / slowness;
+  let pipes = updatePipes(frameNum, model.pipes);
   let um = updateUm(frameNum, pipes, model.um);
-  return {...model, pipes, frameNum, um}
+  return {...model, pipes, frameNum, um};
 }
 
 // Pipe grid
@@ -106,7 +106,7 @@ function toss(): boolean {
 }
 
 function newPipe(): Pipe {
-  return { n: toss(), s: toss(), e: toss(), w: toss() }
+  return { n: toss(), s: toss(), e: toss(), w: toss() };
 }
 
 function generatePipes(y: number, prevRow: PipeRow | null): PipeRow {
@@ -147,7 +147,7 @@ function updateUm(frame: number, pipes: Array<PipeRow>, um: Um): Um {
     console.log(um);
     let target = Math.floor(60 * Math.random());
     let [dest, spin] = selectGoal(pipes, um.to, target);
-    let newUm = {from: um.to, to: dest, endFrameNum: Math.ceil(frame), spin}
+    let newUm = {from: um.to, to: dest, endFrameNum: Math.ceil(frame), spin};
     console.log(newUm);
     return newUm;
   }
@@ -170,7 +170,7 @@ function selectGoal(rows: Array<PipeRow>, currentCol: number, target: number): [
       let [candidates, spin] = unblocked.length == 0 ? [connected, true] : [unblocked, false];
       console.log(candidates);
       console.log(`target ${target} mod ${candidates.length} is ${target % candidates.length}`);
-      return [candidates[target % candidates.length], spin]
+      return [candidates[target % candidates.length], spin];
     }
   }
 }
@@ -201,7 +201,7 @@ function view(model:State, _dispatch:((msg: Message)=>void)) {
         { umView(model.frameNum, model.um) }
       </svg>
     </div>
-  )
+  );
 }
 
 function pipeGrid(frameNum: number, rows: Array<PipeRow>) {
@@ -211,25 +211,25 @@ function pipeGrid(frameNum: number, rows: Array<PipeRow>) {
                  row.pipes.map((pipe, i) =>
                                pipeCell(i + 0.5, boxY(row.y, frameNum), pipe))) }
     </svg>
-  )
+  );
 }
 
-const ne = "M 6 0 L 6 3 A 1 1 0 0 0 7 4 L 10 4"
-const es = "M 6 10 L 6 7 A 1 1 0 0 1 7 6 L 10 6"
-const sw = "M 0 6 L 3 6 A 1 1 0 0 1 4 7 L 4 10"
-const wn = "M 0 4 L 3 4 A 1 1 0 0 0 4 3 L 4 0"
-const ns = "M 6 0 L 6 10"
-const sn = "M 4 0 L 4 10"
-const we = "M 0 4 L 10 4"
-const ew = "M 0 6 L 10 6"
-const neo = "M 4 0 L 4 5 A 1 1 0 0 0 5 6 L 10 6"
-const eso = "M 4 10 L 4 5 A 1 1 0 0 1 5 4 L 10 4"
-const swo = "M 0 4 L 5 4 A 1 1 0 0 1 6 5 L 6 10"
-const wno = "M 0 6 L 5 6 A 1 1 0 0 0 6 5 L 6 0"
-const nx = "M 4 0 L 4 3 L 6 3 L 6 0"
-const ex = "M 10 4 L 7 4 L 7 6 L 10 6"
-const sx = "M 6 10 L 6 7 L 4 7 L 4 10"
-const wx = "M 0 6 L 3 6 L 3 4 L 0 4"
+const ne = "M 6 0 L 6 3 A 1 1 0 0 0 7 4 L 10 4";
+const es = "M 6 10 L 6 7 A 1 1 0 0 1 7 6 L 10 6";
+const sw = "M 0 6 L 3 6 A 1 1 0 0 1 4 7 L 4 10";
+const wn = "M 0 4 L 3 4 A 1 1 0 0 0 4 3 L 4 0";
+const ns = "M 6 0 L 6 10";
+const sn = "M 4 0 L 4 10";
+const we = "M 0 4 L 10 4";
+const ew = "M 0 6 L 10 6";
+const neo = "M 4 0 L 4 5 A 1 1 0 0 0 5 6 L 10 6";
+const eso = "M 4 10 L 4 5 A 1 1 0 0 1 5 4 L 10 4";
+const swo = "M 0 4 L 5 4 A 1 1 0 0 1 6 5 L 6 10";
+const wno = "M 0 6 L 5 6 A 1 1 0 0 0 6 5 L 6 0";
+const nx = "M 4 0 L 4 3 L 6 3 L 6 0";
+const ex = "M 10 4 L 7 4 L 7 6 L 10 6";
+const sx = "M 6 10 L 6 7 L 4 7 L 4 10";
+const wx = "M 0 6 L 3 6 L 3 4 L 0 4";
 
 function pipeCell(x: number, y: number, {n, s, e, w}: Pipe) {
   return (
@@ -251,7 +251,7 @@ function pipeCell(x: number, y: number, {n, s, e, w}: Pipe) {
       {pathIf(sx, s && !w && !n && !e)}
       {pathIf(wx, w && !n && !e && !s)}
     </svg>
-  )
+  );
 }
 
 function pathIf(path: string, cond: boolean) {
@@ -261,7 +261,7 @@ function pathIf(path: string, cond: boolean) {
     )
   } else {
     return <></>
-  }
+  };
 }
 
 // Mon
@@ -274,7 +274,7 @@ function umView(frame: number, um: Um) {
     <foreignObject x={x} y={y} width="100" height="100" transform={rotation(r, x)}>
       <img src={umImg} width="80" height="80" />
     </foreignObject>
-  )
+  );
 }
 
 function xUm(frame: number, um: Um) {

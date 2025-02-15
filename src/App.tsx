@@ -143,24 +143,34 @@ function updateUm(frame: number, pipes: Array<PipeRow>, um: Um): Um {
   if (frame <= um.endFrameNum) {
     return um;
   } else {
+    console.log(`frame ${frame} <= ${um.endFrameNum}`);
+    console.log(um);
     let target = Math.floor(60 * Math.random());
     let [dest, spin] = selectGoal(pipes, um.to, target);
-    return {from: um.to, to: dest, endFrameNum: Math.ceil(frame), spin}
+    let newUm = {from: um.to, to: dest, endFrameNum: Math.ceil(frame), spin}
+    console.log(newUm);
+    return newUm;
   }
 }
 
-function selectGoal(rows: Array<PipeRow>, start: number, target: number): [number, boolean] {
+function selectGoal(rows: Array<PipeRow>, currentCol: number, target: number): [number, boolean] {
   if (rows.length < 3) {
-    return [start, true];
+    return [currentCol, true];
   } else {
     let row = rows[2];
-    let blocked = findConnected(start, row.pipes);
-    if (blocked.length == 0) {
-      return [start, true];
+    let connected = findConnected(currentCol, row.pipes);
+    console.log(connected);
+    console.log(target);
+    if (connected.length == 0) {
+      // Tumble in the void.
+      return [currentCol, true];
     } else {
-      let unblocked = blocked.filter(i => row.pipes[i].s);
-      let [candidates, spin] = unblocked.length == 0 ? [blocked, true] : [unblocked, false];
-      return [target % candidates.length, spin]
+      // Can we get anywhere that lets us proceed?
+      let unblocked = connected.filter(i => row.pipes[i].s);
+      let [candidates, spin] = unblocked.length == 0 ? [connected, true] : [unblocked, false];
+      console.log(candidates);
+      console.log(`target ${target} mod ${candidates.length} is ${target % candidates.length}`);
+      return [candidates[target % candidates.length], spin]
     }
   }
 }
@@ -171,6 +181,7 @@ function findConnected(start: number, pipes: Array<Pipe>) {
 
 function connected(pipes: Array<Pipe>, start: number, end: number) {
   if (start == end) {
+    // Wherever you go, there you are.
     return true;
   } else if (start < end) {
     return pipes.slice(start, end).every(p => p.e);

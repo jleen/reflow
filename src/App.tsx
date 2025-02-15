@@ -233,7 +233,7 @@ const wx = "M 0 6 L 3 6 L 3 4 L 0 4"
 
 function pipeCell(x: number, y: number, {n, s, e, w}: Pipe) {
   return (
-    <svg x={x} y={y} width="1" height="1" viewBox="0 0 10 10">
+    <svg x={x} y={y} width="1" height="1" viewBox="0 0 10 10" key={`${x}_${y}`}>
       {pathIf(ne, n && e)}
       {pathIf(es, e && s)}
       {pathIf(sw, s && w)}

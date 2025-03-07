@@ -22,9 +22,9 @@ const useAnimationFrame = (callback:((_:number)=>void)) => {
 
 export default function App() {
   const [state, setState] = useState(init);
-  let dispatch = (msg: Message) => {setState((s) => update(s, msg))};
+  const dispatch = (msg: Message) => {setState((s) => update(s, msg))};
   useAnimationFrame(delta => dispatch(delta));
-  return view(state, dispatch);
+  return view(state);
 }
 
 
@@ -79,20 +79,20 @@ type Message = number;
 //// EVOLUTION
 
 function update(model: State, delta: Message): State {
-  let frameNum = model.frameNum + delta / slowness;
-  let pipes = updatePipes(frameNum, model.pipes);
-  let um = updateUm(frameNum, pipes, model.um);
+  const frameNum = model.frameNum + delta / slowness;
+  const pipes = updatePipes(frameNum, model.pipes);
+  const um = updateUm(frameNum, pipes, model.um);
   return {...model, pipes, frameNum, um};
 }
 
 // Pipe grid
 
 function updatePipes(frameNum: number, pipes: Array<PipeRow>): Array<PipeRow> {
-  let visPipes = pipes.filter(p => boxY(p.y, frameNum) > -2);
+  const visPipes = pipes.filter(p => boxY(p.y, frameNum) > -2);
   if (visPipes.length == 0) {
     return visPipes.concat([generatePipes(Math.floor(frameNum), null)]);
   } else {
-    let lastPipe = visPipes[visPipes.length - 1];
+    const lastPipe = visPipes[visPipes.length - 1];
     if (boxY(lastPipe.y, frameNum) > 6) {
       return visPipes;
     } else {
@@ -110,7 +110,7 @@ function newPipe(): Pipe {
 }
 
 function generatePipes(y: number, prevRow: PipeRow | null): PipeRow {
-  let newRow = {
+  const newRow = {
     y: y,
     pipes: [ newPipe(), newPipe(), newPipe(), newPipe(), newPipe() ]
   }
@@ -145,9 +145,9 @@ function updateUm(frame: number, pipes: Array<PipeRow>, um: Um): Um {
   } else {
     console.log(`frame ${frame} <= ${um.endFrameNum}`);
     console.log(um);
-    let target = Math.floor(60 * Math.random());
-    let [dest, spin] = selectGoal(pipes, um.to, target);
-    let newUm = {from: um.to, to: dest, endFrameNum: Math.ceil(frame), spin};
+    const target = Math.floor(60 * Math.random());
+    const [dest, spin] = selectGoal(pipes, um.to, target);
+    const newUm = {from: um.to, to: dest, endFrameNum: Math.ceil(frame), spin};
     console.log(newUm);
     return newUm;
   }
@@ -157,17 +157,17 @@ function selectGoal(rows: Array<PipeRow>, currentCol: number, target: number): [
   if (rows.length < 3) {
     return [currentCol, true];
   } else {
-    let row = rows[2];
-    let connected = findConnected(currentCol, row.pipes);
+    const row = rows[2];
+    const connected = findConnected(currentCol, row.pipes);
     console.log(connected);
     console.log(target);
     if (connected.length == 0) {
       // Tumble in the void.
       return [currentCol, true];
     } else {
-      // Can we get anywhere that lets us proceed?
-      let unblocked = connected.filter(i => row.pipes[i].s);
-      let [candidates, spin] = unblocked.length == 0 ? [connected, true] : [unblocked, false];
+      // Can we get anywhere that consts us proceed?
+      const unblocked = connected.filter(i => row.pipes[i].s);
+      const [candidates, spin] = unblocked.length == 0 ? [connected, true] : [unblocked, false];
       console.log(candidates);
       console.log(`target ${target} mod ${candidates.length} is ${target % candidates.length}`);
       return [candidates[target % candidates.length], spin];
@@ -193,7 +193,7 @@ function connected(pipes: Array<Pipe>, start: number, end: number) {
 
 //// VIEW
 
-function view(model:State, _dispatch:((msg: Message)=>void)) {
+function view(model:State) {
   return (
     <div>
       <svg viewBox="0 0 480 400" width="480" height="400">
@@ -267,9 +267,9 @@ function pathIf(path: string, cond: boolean) {
 // Mon
 
 function umView(frame: number, um: Um) {
-  let x = 40 + 80 * xUm(frame, um);
-  let y = 70 + 80 * yUm(frame, um);
-  let r = um.spin ? 360 * Math.max(0, (((1 + horizTimeslice) * umParam(frame, um)) - horizTimeslice)) : 0;
+  const x = 40 + 80 * xUm(frame, um);
+  const y = 70 + 80 * yUm(frame, um);
+  const r = um.spin ? 360 * Math.max(0, (((1 + horizTimeslice) * umParam(frame, um)) - horizTimeslice)) : 0;
   return (
     <foreignObject x={x} y={y} width="100" height="100" transform={rotation(r, x)}>
       <img src={umImg} width="80" height="80" />
@@ -282,7 +282,7 @@ function xUm(frame: number, um: Um) {
 }
 
 function yUm(frame: number, um: Um) {
-  let t = umParam(frame, um);
+  const t = umParam(frame, um);
   if (t < horizTimeslice) {
     return 1-t;
   } else {
@@ -295,12 +295,14 @@ function umParam(frame: number, um: Um) {
 }
 
 function interp(a: number, b: number, t: number, s: number) {
-  let tt = Math.min(1, t/s);
+  const tt = Math.min(1, t/s);
+  const nums = [1,2,10,20];
+  nums.sort();
   return b * tt + a * (1-tt);
 }
 
 function rotation(rot: number, pos: number) {
-  let x = pos + 45;
-  let y = 175;
+  const x = pos + 45;
+  const y = 175;
   return `rotate(${rot}, ${x}, ${y})`;
 }

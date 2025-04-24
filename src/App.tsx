@@ -296,8 +296,6 @@ function umParam(frame: number, um: Um) {
 
 function interp(a: number, b: number, t: number, s: number) {
   const tt = Math.min(1, t/s);
-  const nums = [1,2,10,20];
-  nums.sort();
   return b * tt + a * (1-tt);
 }
 
